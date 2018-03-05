@@ -19,9 +19,25 @@ class Tweet {
     var retweeted: Bool // Configure retweet button
     var user: User // Contains name, screenname, etc. of tweet author
     var createdAtString: String // Display date
+    // Retweeted Username if tweet is retweet
+    var retweetedByUser: User?
+   
     
     // MARK: - Create initializer with dictionary
     init(dictionary: [String: Any]) {
+        
+        var dictionary = dictionary
+        
+        // Is this a re-tweet?
+        if let originalTweet = dictionary["retweeted_status"] as? [String: Any] {
+            let userDictionary = dictionary["user"] as! [String: Any]
+            self.retweetedByUser = User(dictionary: userDictionary)
+            //self.user = User(dictionary: userDictionary)
+            
+            // Change tweet to original tweet
+            dictionary = originalTweet
+        }
+  
         id = dictionary["id"] as! Int64
         text = dictionary["text"] as! String
         favoriteCount = dictionary["favorite_count"] as? Int
@@ -29,9 +45,11 @@ class Tweet {
         retweetCount = dictionary["retweet_count"] as! Int
         retweeted = dictionary["retweeted"] as! Bool
         
+        //initialize user
         let user = dictionary["user"] as! [String: Any]
         self.user = User(dictionary: user)
         
+        //format and set createdAt string
         let createdAtOriginalString = dictionary["created_at"] as! String
         let formatter = DateFormatter()
         // Configure the input format to parse the date string
@@ -44,7 +62,16 @@ class Tweet {
         // Convert Date to String
         createdAtString = formatter.string(from: date)
         
-        
+    
     }
-}
+    static func tweets(with array: [[String: Any]]) -> [Tweet] {
+        var tweets: [Tweet] = []
+        for tweetDictionary in array {
+            let tweet = Tweet(dictionary: tweetDictionary)
+            tweets.append(tweet)
+        }
+        return tweets
+    }
 
+
+}
